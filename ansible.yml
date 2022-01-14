@@ -1,0 +1,39 @@
+---
+  - name: Port forwarding for apache server
+    hosts: web1
+    become: yes
+    user: root
+    handlers:
+      
+      - name: reload firewall
+        command: 'firewall-cmd --reload'
+      
+      
+
+    tasks:
+      -
+        name: install an apache and php
+        yum:
+          name: '{{ item }}'
+          state: present
+        with_items:
+          - httpd
+          
+      -
+        name: start httpd
+        systemd:
+          name: httpd
+          state: started
+          enabled: yes
+    
+      - 
+        name: create apache user
+        user: 
+          name: apache
+          
+      - 
+        name: change http port
+        lineinfile: dest=/etc/httpd/conf/httpd.conf regexp="^Listen " line="Listen {{ http_port }}" state=present
+        vars:
+          http_port: 8080
+        register: http_result
